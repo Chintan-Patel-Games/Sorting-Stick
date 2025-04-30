@@ -32,11 +32,11 @@ namespace UI
 			TextView();
 			virtual ~TextView();
 
-			static void initializeTextView();
-
 			virtual void initialize(sf::String text_value, sf::Vector2f position, FontType font_type = FontType::BUBBLE_BOBBLE, int font_size = default_font_size, sf::Color color = sf::Color::White);
 			virtual void update() override;
 			virtual void render() override;
+
+			static void initializeTextView();
 
 			void setText(sf::String text_value);
 			void setTextCentreAligned();

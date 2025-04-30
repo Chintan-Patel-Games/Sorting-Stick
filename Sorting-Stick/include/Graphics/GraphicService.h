@@ -28,11 +28,11 @@ namespace Graphics
 		GraphicService();
 		~GraphicService();
 
-		sf::RenderWindow* createGameWindow();
-
 		void initialize();
 		void update();
 		void render();
+
+		sf::RenderWindow* createGameWindow();
 		bool isGameWindowOpen();
 		void setFrameRate(int);
 		sf::Vector2f getReferenceResolution();

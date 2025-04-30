@@ -23,10 +23,7 @@ namespace UI
             createTexts();
         }
 
-        GameplayUIController::~GameplayUIController()
-        {
-            destroy();
-        }
+        GameplayUIController::~GameplayUIController() { destroy(); }
 
         void GameplayUIController::initialize()
         {
@@ -34,17 +31,13 @@ namespace UI
             initializeTexts();
         }
 
-        void GameplayUIController::createButton()
-        {
-            menu_button = new ButtonView();
-        }
+        void GameplayUIController::createButton() { menu_button = new ButtonView(); }
 
         void GameplayUIController::createTexts()
         {
             search_type_text = new TextView();
             comparisons_text = new TextView();
             array_access_text = new TextView();
-
             num_sticks_text = new TextView();
             delay_text = new TextView();
             time_complexity_text = new TextView();
@@ -65,13 +58,8 @@ namespace UI
             search_type_text->initialize("Sort Type  :  Bubble Sort", sf::Vector2f(search_type_text_x_position, text_y_position), FontType::BUBBLE_BOBBLE, font_size);
             comparisons_text->initialize("Comparisons  :  0", sf::Vector2f(comparisons_text_x_position, text_y_position), FontType::BUBBLE_BOBBLE, font_size);
             array_access_text->initialize("Array Access  :  0", sf::Vector2f(array_access_text_x_position, text_y_position), FontType::BUBBLE_BOBBLE, font_size);
-
             num_sticks_text->initialize("Number of Sticks  :  0", sf::Vector2f(num_sticks_text_x_position, text_y_pos2), FontType::BUBBLE_BOBBLE, font_size);
-
-
             delay_text->initialize("Delay  :  0 ms", sf::Vector2f(delay_text_x_position, text_y_pos2), FontType::BUBBLE_BOBBLE, font_size);
-
-
             time_complexity_text->initialize("Time Complexity  :  O(n)", sf::Vector2f(time_complexity_text_x_position, text_y_pos2), FontType::BUBBLE_BOBBLE, font_size);
         }
 
@@ -81,7 +69,6 @@ namespace UI
             updateSearchTypeText();
             updateComparisonsText();
             updateArrayAccessText();
-
             updateNumberOfSticksText();
             updateDelayText();
             updateTimeComplexityText();
@@ -93,7 +80,6 @@ namespace UI
             search_type_text->render();
             comparisons_text->render();
             array_access_text->render();
-
             num_sticks_text->render();
             delay_text->render();
             time_complexity_text->render();
@@ -105,7 +91,6 @@ namespace UI
             search_type_text->show();
             comparisons_text->show();
             array_access_text->show();
-
             num_sticks_text->show();
             delay_text->show();
             time_complexity_text->show();
@@ -196,10 +181,7 @@ namespace UI
             GameService::setGameState(GameState::MAIN_MENU);
         }
 
-        void GameplayUIController::registerButtonCallback()
-        {
-            menu_button->registerCallbackFuntion(std::bind(&GameplayUIController::menuButtonCallback, this));
-        }
+        void GameplayUIController::registerButtonCallback() { menu_button->registerCallbackFuntion(std::bind(&GameplayUIController::menuButtonCallback, this)); }
 
         void GameplayUIController::destroy()
         {
