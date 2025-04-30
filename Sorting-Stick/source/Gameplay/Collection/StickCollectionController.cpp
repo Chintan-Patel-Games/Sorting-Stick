@@ -5,6 +5,7 @@
 #include "Global/ServiceLocator.h"
 #include "Gameplay/Collection/Stick.h"
 #include <random>
+#include <chrono>
 
 namespace Gameplay
 {
@@ -22,13 +23,11 @@ namespace Gameplay
 			for (int i = 0; i < collection_model->number_of_elements; i++) sticks.push_back(new Stick(i));
 		}
 
-		StickCollectionController::~StickCollectionController()
-		{
-			destroy();
-		}
+		StickCollectionController::~StickCollectionController() { destroy(); }
 
 		void StickCollectionController::initialize()
 		{
+			sort_state = SortState::NOT_SORTING;
 			collection_view->initialize(this);
 			initializeSticks();
 			reset();
@@ -37,7 +36,6 @@ namespace Gameplay
 		void StickCollectionController::initializeSticks()
 		{
 			float rectangle_width = calculateStickWidth();
-
 
 			for (int i = 0; i < collection_model->number_of_elements; i++)
 			{
@@ -82,10 +80,7 @@ namespace Gameplay
 			return rectangle_width;
 		}
 
-		float StickCollectionController::calculateStickHeight(int array_pos)
-		{
-			return (static_cast<float>(array_pos + 1) / collection_model->number_of_elements) * collection_model->max_element_height;
-		}
+		float StickCollectionController::calculateStickHeight(int array_pos) { return (static_cast<float>(array_pos + 1) / collection_model->number_of_elements) * collection_model->max_element_height; }
 
 		void StickCollectionController::updateStickPosition()
 		{
@@ -107,21 +102,80 @@ namespace Gameplay
 			updateStickPosition();
 		}
 
-		bool StickCollectionController::compareSticksByData(const Stick* a, const Stick* b) const
+		bool StickCollectionController::compareSticksByData(const Stick* a, const Stick* b) const { return a->data < b->data; }
+
+		void StickCollectionController::processSortThreadState() { if (sort_thread.joinable() && isCollectionSorted()) sort_thread.join(); }
+
+		void StickCollectionController::processBubbleSort()
 		{
-			return a->data < b->data;
+			Sound::SoundService* sound = Global::ServiceLocator::getInstance()->getSoundService();
+
+			for (int j = 0; j < sticks.size(); j++)
+			{
+				if (sort_state == SortState::NOT_SORTING) { break; }
+
+				bool swapped = false;  // To track if a swap was made
+
+				for (int i = 1; i < sticks.size() - j; i++)  // Reduce the range each pass
+				{
+					if (sort_state == SortState::NOT_SORTING) { break; }
+
+					number_of_array_access += 2;
+					number_of_comparisons++;
+					sound->playSound(Sound::SoundType::COMPARE_SFX);
+
+					sticks[i - 1]->stick_view->setFillColor(collection_model->processing_element_color);
+					sticks[i]->stick_view->setFillColor(collection_model->processing_element_color);
+
+					if (sticks[i - 1]->data > sticks[i]->data)
+					{
+						std::swap(sticks[i - 1], sticks[i]);
+						swapped = true;  // Set swapped to true if there was a swap
+					}
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(current_operation_delay));
+
+					sticks[i - 1]->stick_view->setFillColor(collection_model->element_color);
+					sticks[i]->stick_view->setFillColor(collection_model->element_color);
+					updateStickPosition();
+				}
+
+				// Set the last sorted stick to green
+				if (sticks.size() - j - 1 >= 0)  sticks[sticks.size() - j - 1]->stick_view->setFillColor(collection_model->placement_position_element_color);
+
+				// If no swaps were made, the array is already sorted
+				if (!swapped) break;
+			}
+
+			setCompletedColor();
 		}
 
-		void StickCollectionController::processSortThreadState()
+		void StickCollectionController::setCompletedColor()
 		{
-			if (sort_thread.joinable() && isCollectionSorted()) sort_thread.join();
+			for (int k = 0; k < sticks.size(); k++)
+			{
+				if (sort_state == SortState::NOT_SORTING) { break; }
+
+				sticks[k]->stick_view->setFillColor(collection_model->element_color);
+			}
+
+			Sound::SoundService* sound = Global::ServiceLocator::getInstance()->getSoundService();
+
+			for (int i = 0; i < sticks.size(); ++i)
+			{
+				if (sort_state == SortState::NOT_SORTING) { break; }
+
+				sound->playSound(Sound::SoundType::COMPARE_SFX);
+				sticks[i]->stick_view->setFillColor(collection_model->placement_position_element_color);
+
+				// Delay to visualize the final color change
+				std::this_thread::sleep_for(std::chrono::milliseconds(color_delay));
+
+			}
+			if (sort_state == SortState::SORTING) sound->playSound(Sound::SoundType::SCREAM);
 		}
 
-
-		void StickCollectionController::resetSticksColor()
-		{
-			for (int i = 0; i < sticks.size(); i++) sticks[i]->stick_view->setFillColor(collection_model->element_color);
-		}
+		void StickCollectionController::resetSticksColor() { for (int i = 0; i < sticks.size(); i++) sticks[i]->stick_view->setFillColor(collection_model->element_color); }
 
 		void StickCollectionController::resetVariables()
 		{
@@ -131,7 +185,10 @@ namespace Gameplay
 
 		void StickCollectionController::reset()
 		{
+			color_delay = 0;
 			current_operation_delay = 0;
+			sort_state = SortState::NOT_SORTING;
+
 			if (sort_thread.joinable()) sort_thread.join();
 
 			shuffleSticks();
@@ -142,14 +199,16 @@ namespace Gameplay
 		void StickCollectionController::sortElements(SortType sort_type)
 		{
 			current_operation_delay = collection_model->operation_delay;
+			color_delay = collection_model->initial_color_delay;
 			this->sort_type = sort_type;
+			sort_state = SortState::SORTING;
 
-			/*switch (sort_type)
+			switch (sort_type)
 			{
 			case Gameplay::Collection::SortType::BUBBLE_SORT:
 				sort_thread = std::thread(&StickCollectionController::processBubbleSort, this);
 				break;
-			}*/
+			}
 		}
 
 		bool StickCollectionController::isCollectionSorted()
@@ -170,18 +229,16 @@ namespace Gameplay
 			delete (collection_model);
 		}
 
-		SortType StickCollectionController::getSortType() { return sort_type; }
+		SortType StickCollectionController::getSortType() const { return sort_type; }
 
-		int StickCollectionController::getNumberOfComparisons() { return number_of_comparisons; }
+		int StickCollectionController::getNumberOfComparisons() const { return number_of_comparisons; }
 
-		int StickCollectionController::getNumberOfArrayAccess() { return number_of_array_access; }
+		int StickCollectionController::getNumberOfArrayAccess() const { return number_of_array_access; }
 
-		int StickCollectionController::getNumberOfSticks() { return collection_model->number_of_elements; }
+		int StickCollectionController::getNumberOfSticks() const { return collection_model->number_of_elements; }
 
-		int StickCollectionController::getDelayMilliseconds() { return current_operation_delay; }
+		int StickCollectionController::getDelayMilliseconds() const { return current_operation_delay; }
 
-		sf::String StickCollectionController::getTimeComplexity() { return time_complexity; }
+		sf::String StickCollectionController::getTimeComplexity() const { return time_complexity; }
 	}
 }
-
-

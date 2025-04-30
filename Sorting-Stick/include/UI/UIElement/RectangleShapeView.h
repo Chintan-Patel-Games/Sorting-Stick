@@ -24,7 +24,7 @@ namespace UI
 			virtual void setOutlineColor(sf::Color outline_color);
 			virtual void setOutlineThickness(int outline_thikness);
 
-			sf::Vector2f getSize();
+			sf::Vector2f getSize() const;
 		};
 	}
 }

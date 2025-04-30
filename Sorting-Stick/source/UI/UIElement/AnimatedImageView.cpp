@@ -8,15 +8,7 @@ namespace UI
 
         AnimatedImageView::~AnimatedImageView() = default;
 
-        void AnimatedImageView::initialize(sf::String texture_path, float image_width, float image_height, sf::Vector2f position)
-        {
-            ImageView::initialize(texture_path, image_width, image_height, position);
-        }
-
-        void AnimatedImageView::registerCallbackFuntion(CallbackFunction animation_end_callback)
-        {
-            callback_function = animation_end_callback;
-        }
+        void AnimatedImageView::initialize(sf::String texture_path, float image_width, float image_height, sf::Vector2f position) { ImageView::initialize(texture_path, image_width, image_height, position); }
 
         void AnimatedImageView::update()
         {
@@ -30,10 +22,7 @@ namespace UI
             }
         }
 
-        void AnimatedImageView::render()
-        {
-            ImageView::render();
-        }
+        void AnimatedImageView::render() { ImageView::render(); }
 
         void AnimatedImageView::playAnimation(AnimationType type, float duration, CallbackFunction animation_end_callback)
         {
@@ -44,6 +33,8 @@ namespace UI
             registerCallbackFuntion(animation_end_callback);
         }
 
+        void AnimatedImageView::registerCallbackFuntion(CallbackFunction animation_end_callback) { callback_function = animation_end_callback; }
+
         void AnimatedImageView::updateElapsedDuration()
         {
             float deltaTime = clock.restart().asSeconds();
@@ -52,10 +43,7 @@ namespace UI
 
         void AnimatedImageView::handleAnimationProgress()
         {
-            if (elapsed_duration >= animation_duration && callback_function)
-            {
-                callback_function();
-            }
+            if (elapsed_duration >= animation_duration && callback_function) callback_function();
         }
 
         void AnimatedImageView::updateAnimation()
@@ -71,15 +59,17 @@ namespace UI
             }
         }
 
-        void AnimatedImageView::setAnimationDuration(float duration)
+        void AnimatedImageView::reset()
         {
-            animation_duration = duration;
+            animation_duration = default_animation_duration;
+            animation_type = AnimationType::FADE_IN;
+            clock.restart();
+            elapsed_duration = 0.0f;
         }
 
-        void AnimatedImageView::setAnimationType(AnimationType type)
-        {
-            animation_type = type;
-        }
+        void AnimatedImageView::setAnimationDuration(float duration) { animation_duration = duration; }
+
+        void AnimatedImageView::setAnimationType(AnimationType type) { animation_type = type; }
 
         void AnimatedImageView::fadeIn()
         {
@@ -91,14 +81,6 @@ namespace UI
         {
             float alpha = std::max(0.0f, 1.0f - (elapsed_duration / animation_duration));
             image_sprite.setColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(alpha * 255)));
-        }
-
-        void AnimatedImageView::reset()
-        {
-            animation_duration = default_animation_duration;
-            animation_type = AnimationType::FADE_IN;
-            clock.restart();
-            elapsed_duration = 0.0f;
         }
     }
 }

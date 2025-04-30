@@ -29,16 +29,6 @@ namespace Main
 		showSplashScreen();
 	}
 
-	void GameService::initializeVariables() { game_window = service_locator->getGraphicService()->getGameWindow(); }
-
-	void GameService::showSplashScreen()
-	{
-		setGameState(GameState::SPLASH_SCREEN);
-		ServiceLocator::getInstance()->getUIService()->showScreen();
-	}
-
-	bool GameService::isRunning() { return service_locator->getGraphicService()->isGameWindowOpen(); }
-
 	// Main Game Loop.
 	void GameService::update()
 	{
@@ -56,7 +46,17 @@ namespace Main
 		game_window->display();
 	}
 
-	void GameService::destroy() {  }
+	bool GameService::isRunning() { return service_locator->getGraphicService()->isGameWindowOpen(); }
+
+	void GameService::initializeVariables() { game_window = service_locator->getGraphicService()->getGameWindow(); }
+
+	void GameService::showSplashScreen()
+	{
+		setGameState(GameState::SPLASH_SCREEN);
+		ServiceLocator::getInstance()->getUIService()->showScreen();
+	}
+
+	void GameService::destroy() {}
 
 	void GameService::setGameState(GameState new_state) { current_state = new_state; }
 
